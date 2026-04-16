@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   INDUSTRIES, SOURCES, COMPANY_SIZES,
   INTEREST_LEVELS, PIPELINE_STAGES,
@@ -65,6 +66,7 @@ const EMPTY = {
 
 export default function LeadForm({ initial, onSubmit, onCancel }) {
   const { users } = useCRM();
+  const { user } = useAuth();
 
   const [form, setForm] = useState(initial ? {
     ...EMPTY,
@@ -73,7 +75,10 @@ export default function LeadForm({ initial, onSubmit, onCancel }) {
     assignedToId: initial.assignedToId?.toString() || initial.assignedTo?.id?.toString() || '',
     nextFollowUpDate: initial.nextFollowUpDate ? initial.nextFollowUpDate.split('T')[0] : '',
     initialNote: '',
-  } : EMPTY);
+  } : {
+    ...EMPTY,
+    assignedToId: user?.id?.toString() || '',
+  });
   const [errors, setErrors] = useState({});
 
   const set = key => val => setForm(f => ({ ...f, [key]: val }));

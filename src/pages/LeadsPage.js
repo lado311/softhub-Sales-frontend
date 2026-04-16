@@ -87,11 +87,17 @@ export default function LeadsPage({ onSelectLead, showAddModal, onCloseModal }) 
   };
 
   const handleEdit = async (data) => {
-    await updateLead(editLead.id, data);
-    setEditLead(null);
-    show('Lead updated');
+    console.log('handleEdit called with:', data);
+    try {
+      const result = await updateLead(editLead.id, data);
+      console.log('updateLead result:', result);
+      await fetchLeads();
+      setEditLead(null);
+      show('Lead updated');
+    } catch(err) {
+      console.error('updateLead error:', err);
+    }
   };
-
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Delete "${name}"?`)) return;
     await deleteLead(id);

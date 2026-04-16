@@ -5,16 +5,25 @@ import { formatCurrency, getInitials } from '../utils/helpers';
 import Modal from '../components/common/Modal';
 import LeadForm from '../components/leads/LeadForm';
 import { Plus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function KanbanPage({ onSelectLead }) {
-  const { leads, moveLeadStage, addLead } = useCRM();
+  const { leads, setLeads, moveLeadStage, addLead, updateLead, users } = useCRM();
+  const { user } = useAuth();
+  const myLeads = leads.filter(l =>
+      l.status === 'New' && (l.assignedToId === null || l.assignedToId === undefined)
+          ? true
+          : String(l.assignedToId) === String(user?.id) ||
+          String(l.assignedTo?.id) === String(user?.id)
+  );
+
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [quickAddStage, setQuickAddStage] = useState(null);
 
   const byStage = {};
   PIPELINE_STAGES.forEach(s => {
-    byStage[s] = leads.filter(l => l.status === s);
+    byStage[s] = myLeads.filter(l => l.status === s);
   });
 
   const handleDragStart = (e, lead) => {
@@ -33,6 +42,13 @@ export default function KanbanPage({ onSelectLead }) {
     e.preventDefault();
     const leadId = e.dataTransfer.getData('leadId');
     if (leadId && dragging?.status !== stage) {
+      // ეგრევე local state-ში გადაიტანე
+      setLeads(prev => prev.map(l =>
+          String(l.id) === String(leadId)
+              ? { ...l, status: stage }
+              : l
+      ));
+      // შემდეგ backend-ს გაუგზავნე
       moveLeadStage(leadId, stage);
     }
     setDragging(null);
@@ -69,6 +85,9 @@ export default function KanbanPage({ onSelectLead }) {
             dragging={dragging}
             totalValue={totalValue(stage)}
             onQuickAdd={() => setQuickAddStage(stage)}
+            users={users}
+            updateLead={updateLead}
+            setLeads={setLeads}
           />
         ))}
       </div>
@@ -84,7 +103,7 @@ export default function KanbanPage({ onSelectLead }) {
   );
 }
 
-function KanbanColumn({ stage, leads, isDragOver, onDragOver, onDrop, onSelectLead, onDragStart, onDragEnd, dragging, totalValue, onQuickAdd }) {
+function KanbanColumn({ stage, leads, isDragOver, onDragOver, onDrop, onSelectLead, onDragStart, onDragEnd, dragging, totalValue, onQuickAdd, users, updateLead, setLeads }){
   const color = STAGE_COLORS[stage];
   const bg = STAGE_BG[stage];
 
@@ -127,14 +146,17 @@ function KanbanColumn({ stage, leads, isDragOver, onDragOver, onDrop, onSelectLe
       {/* Cards */}
       <div style={styles.cardList}>
         {leads.map(lead => (
-          <KanbanCard
-            key={lead.id}
-            lead={lead}
-            isDragging={dragging?.id === lead.id}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-            onClick={() => onSelectLead(lead)}
-          />
+            <KanbanCard
+                key={lead.id}
+                lead={lead}
+                isDragging={dragging?.id === lead.id}
+                onDragStart={onDragStart}
+                onDragEnd={onDragEnd}
+                onClick={() => onSelectLead(lead)}
+                users={users}
+                updateLead={updateLead}
+                setLeads={setLeads}
+            />
         ))}
         {leads.length === 0 && (
           <div style={{
@@ -150,51 +172,95 @@ function KanbanColumn({ stage, leads, isDragOver, onDragOver, onDrop, onSelectLe
   );
 }
 
-function KanbanCard({ lead, isDragging, onDragStart, onDragEnd, onClick }) {
+function KanbanCard({ lead, isDragging, onDragStart, onDragEnd, onClick, users, updateLead, setLeads }) {
   const [hovered, setHovered] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+
+  const handleAssign = async (e) => {
+    e.stopPropagation();
+    const assignedToId = e.target.value ? parseInt(e.target.value) : null;
+    setAssigning(true);
+    try {
+      // ჯერ local state განაახლე
+      setLeads(prev => prev.map(l =>
+          l.id === lead.id
+              ? { ...l, assignedToId: assignedToId }
+              : l
+      ));
+      // შემდეგ backend
+      await updateLead(lead.id, { assignedToId });
+    } finally {
+      setAssigning(false);
+    }
+  };
 
   return (
-    <div
-      draggable
-      onDragStart={(e) => onDragStart(e, lead)}
-      onDragEnd={onDragEnd}
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        ...styles.card,
-        opacity: isDragging ? 0.4 : 1,
-        transform: hovered && !isDragging ? 'translateY(-1px)' : 'none',
-        boxShadow: hovered && !isDragging ? 'var(--shadow-md)' : 'var(--shadow-sm)',
-        borderColor: hovered ? 'var(--border-focus)' : 'var(--border)',
-        cursor: 'grab',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-        <div style={{ fontWeight: 700, fontSize: '0.84rem', flex: 1, lineHeight: 1.3 }}>{lead.companyName}</div>
-        <InterestDot level={lead.interestLevel} />
-      </div>
-
-      <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBottom: 8 }}>
-        {lead.contactPersonName} · {lead.industry}
-      </div>
-
-      {lead.potentialValue > 0 && (
-        <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--success)', marginBottom: 8 }}>
-          {formatCurrency(lead.potentialValue)}
+      <div
+          draggable
+          onDragStart={(e) => onDragStart(e, lead)}
+          onDragEnd={onDragEnd}
+          onClick={onClick}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          style={{
+            ...styles.card,
+            opacity: isDragging ? 0.4 : 1,
+            transform: hovered && !isDragging ? 'translateY(-1px)' : 'none',
+            boxShadow: hovered && !isDragging ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+            borderColor: hovered ? 'var(--border-focus)' : 'var(--border)',
+            cursor: 'grab',
+          }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+          <div style={{ fontWeight: 700, fontSize: '0.84rem', flex: 1, lineHeight: 1.3 }}>{lead.companyName}</div>
+          <InterestDot level={lead.interestLevel} />
         </div>
-      )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
-        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-          📍 {lead.location?.split(',')[0] || '—'}
+        <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBottom: 8 }}>
+          {lead.contactPersonName} · {lead.industry}
         </div>
-        <div style={styles.assigneeChip}>
-          <div style={styles.miniAvatar}>{getInitials(lead.assignedTo)}</div>
-          <span>{lead.assignedTo?.split(' ')[0]}</span>
+
+        {lead.potentialValue > 0 && (
+            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--success)', marginBottom: 8 }}>
+              {formatCurrency(lead.potentialValue)}
+            </div>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            📍 {lead.location?.split(',')[0] || '—'}
+          </div>
+        </div>
+
+        {/* Assigned dropdown */}
+        <div
+            style={{ marginTop: 8 }}
+            onClick={e => e.stopPropagation()}
+            onMouseDown={e => e.stopPropagation()}
+        >
+          <select
+              value={lead.assignedToId?.toString() || ''}
+              onChange={handleAssign}
+              disabled={assigning}
+              style={{
+                width: '100%',
+                fontSize: '0.72rem',
+                padding: '4px 6px',
+                border: '1px solid var(--border)',
+                borderRadius: 6,
+                background: lead.assignedToId ? 'var(--accent-light)' : 'var(--bg-hover)',
+                color: lead.assignedToId ? 'var(--accent)' : 'var(--text-muted)',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+          >
+            <option value="">Unassigned</option>
+            {users.map(u => (
+                <option key={u.id} value={u.id.toString()}>{u.fullName}</option>
+            ))}
+          </select>
         </div>
       </div>
-    </div>
   );
 }
 

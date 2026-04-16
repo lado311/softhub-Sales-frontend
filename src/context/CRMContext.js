@@ -71,7 +71,17 @@ export function CRMProvider({ children }) {
 
   const updateLead = useCallback(async (id, updates) => {
     const { data } = await leadsApi.update(id, updates);
-    setLeads(prev => prev.map(l => l.id === id ? { ...l, ...data } : l));
+    setLeads(prev => prev.map(l =>
+        l.id === id
+            ? {
+              ...l,
+              ...data,
+              // ეს ხაზები დარწმუნდება რომ assignedToId სწორად განახლდება
+              assignedToId: data.assignedToId ?? data.assignedTo?.id ?? updates.assignedToId ?? l.assignedToId,
+              assignedToName: data.assignedToName ?? data.assignedTo?.fullName ?? l.assignedToName,
+            }
+            : l
+    ));
     return data;
   }, []);
 

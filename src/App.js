@@ -31,6 +31,7 @@ function Spinner() {
 function AppInner() {
   const { addLead, updateLead, deleteLead, fetchLeads, fetchUsers, fetchFollowUps } = useCRM();
   const [page, setPage] = useState('dashboard');
+  const [previousPage, setPreviousPage] = useState('leads');
   const [selectedLeadId, setSelectedLeadId] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -55,9 +56,10 @@ function AppInner() {
   }, []);
 
   const handleSelectLead = useCallback((lead) => {
+    setPreviousPage(page);
     setSelectedLeadId(lead.id ?? lead);
     setPage('lead-detail');
-  }, []);
+  }, [page]);
 
   const handleNavigate = useCallback((p) => {
     setSelectedLeadId(null);
@@ -96,10 +98,10 @@ function AppInner() {
           {page === 'reports' && <ReportsPage />}
           {page === 'settings' && <SettingsPage />}
           {page === 'lead-detail' && selectedLeadId && (
-            <LeadDetails
-              leadId={selectedLeadId}
-              onBack={() => { setSelectedLeadId(null); setPage('leads'); }}
-              onEdit={(lead) => { /* opens edit modal */ }}
+              <LeadDetails
+                  leadId={selectedLeadId}
+                  onBack={() => { setSelectedLeadId(null); setPage(previousPage); }}
+                  onEdit={(lead) => { /* opens edit modal */ }}
               onDelete={handleDelete}
             />
           )}
