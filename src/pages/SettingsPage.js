@@ -22,7 +22,10 @@ export default function SettingsPage() {
   return (
     <div className="fade-in">
       {ToastComponent}
-      <div style={S.layout}>
+      <div style={{
+        ...S.layout,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))'
+      }}>
         <div style={S.tabSidebar}>
           {tabs.map(({ key, label, icon: Icon }) => (
             <button key={key} onClick={() => setActiveTab(key)} style={{ ...S.tabBtn, background: activeTab === key ? 'var(--accent-light)' : 'transparent', color: activeTab === key ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: activeTab === key ? 600 : 400 }}>

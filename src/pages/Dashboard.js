@@ -34,7 +34,10 @@ export default function Dashboard({ onNavigate, onSelectLead }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }} className="fade-in">
       {/* KPI cards */}
-      <div style={styles.kpiGrid}>
+      <div style={{
+        ...styles.kpiGrid,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))'
+      }}>
         <KpiCard icon={Users} label="Total Leads" value={stats.total} sub={`${stats.byStage['New'] || 0} new this period`} color="#6B7FD7" />
         <KpiCard icon={DollarSign} label="Won Revenue" value={formatCurrency(stats.wonValue)} sub={`${stats.wonCount} deals closed`} color="#27AE60" />
         <KpiCard icon={Target} label="Conversion Rate" value={`${stats.conversionRate}%`} sub="Won vs. closed deals" color="#F5A623" />
@@ -42,7 +45,10 @@ export default function Dashboard({ onNavigate, onSelectLead }) {
       </div>
 
       {/* Charts row */}
-      <div style={styles.chartsRow}>
+      <div style={{
+        ...styles.chartsRow,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))'
+      }}>
         {/* Bar chart */}
         <div style={styles.chartCard}>
           <h3 style={styles.cardTitle}>Leads by Stage</h3>
@@ -84,7 +90,10 @@ export default function Dashboard({ onNavigate, onSelectLead }) {
       </div>
 
       {/* Bottom row */}
-      <div style={styles.bottomRow}>
+      <div style={{
+        ...styles.bottomRow,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))'
+      }}>
         {/* Overdue follow-ups */}
         <div style={{ ...styles.listCard, flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>

@@ -57,7 +57,11 @@ export default function ReportsPage() {
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+        gap: 12
+      }}>
         <Tile label="Pipeline Value" value={formatCurrency(pipelineValue)} color="#6B7FD7" />
         <Tile label="Avg Deal Size" value={formatCurrency(avgDeal)} color="#F5A623" />
         <Tile label="Win Rate" value={`${winRate}%`} color="#27AE60" sub={`${won.length} won · ${lost.length} lost`} />

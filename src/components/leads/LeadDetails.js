@@ -77,7 +77,10 @@ export default function LeadDetails({ leadId, onBack, onEdit, onDelete }) {
         </div>
       </div>
 
-      <div style={styles.grid}>
+      <div style={{
+        ...styles.grid,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))'
+      }}>
         {/* Left */}
         <div style={styles.leftCol}>
           <div style={styles.card}>

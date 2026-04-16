@@ -115,8 +115,8 @@ export default function LeadsPage({ onSelectLead, showAddModal, onCloseModal }) 
       {ToastComponent}
 
       {/* Toolbar */}
-      <div style={S.toolbar}>
-        <div style={S.searchBox}>
+      <div style={{ ...S.toolbar, flexWrap: 'wrap' }}>
+        <div style={{...S.searchBox, flex: 1, minWidth: 200, maxWidth: 380}}>
           <Search size={15} color="var(--text-muted)" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search companies, contacts, email…" style={S.searchInput} />
@@ -183,7 +183,7 @@ export default function LeadsPage({ onSelectLead, showAddModal, onCloseModal }) 
       )}
 
       {/* Table */}
-      <div style={S.tableWrap}>
+      <div className="leads-table-desktop" style={{ ...S.tableWrap, overflowX: 'auto' }}>
         {loading && leads.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>Loading leads…</div>
         ) : (
@@ -229,6 +229,29 @@ export default function LeadsPage({ onSelectLead, showAddModal, onCloseModal }) 
           </table>
         )}
       </div>
+
+      {/* Cards — mobile */}
+      <div className="leads-cards-mobile">
+        {loading && leads.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>Loading leads…</div>
+        ) : leadsWithScore.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px 0' }}>
+              <div style={{ fontSize: '2rem', marginBottom: 8 }}>🔍</div>
+              <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>No leads found</div>
+            </div>
+        ) : (
+            leadsWithScore.map(lead => (
+                <MobileLeadCard
+                    key={lead.id}
+                    lead={lead}
+                    onClick={() => onSelectLead(lead)}
+                    onEdit={() => setEditLead(lead)}
+                    onDelete={() => handleDelete(lead.id, lead.companyName)}
+                />
+            ))
+        )}
+      </div>
+
 
       <Modal isOpen={showAddModal} onClose={onCloseModal} title="Add New Lead" width={700}>
         <LeadForm onSubmit={handleAdd} onCancel={onCloseModal} />
@@ -302,6 +325,79 @@ function FilterSelect({ label, value, options, onChange }) {
         {options.map(o => <option key={o}>{o}</option>)}
       </select>
     </div>
+  );
+}
+
+function MobileLeadCard({ lead, onClick, onEdit, onDelete }) {
+  const { label, color, bg } = getScoreLabel(lead.score);
+  const overdue = lead.nextFollowUpDate && isOverdue(lead.nextFollowUpDate) && !['Won', 'Lost'].includes(lead.status);
+
+  return (
+      <div
+          onClick={onClick}
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '14px 16px',
+            marginBottom: 10,
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 2 }}>{lead.companyName}</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{lead.industry} · {lead.location}</div>
+          </div>
+          <StatusBadge status={lead.status} size="sm" />
+        </div>
+
+        {/* Details */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+          <div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 2 }}>Contact</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 500 }}>{lead.contactPersonName}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{lead.contactPersonPosition}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 2 }}>Value</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--success)' }}>{formatCurrency(lead.potentialValue)}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 2 }}>Assigned</div>
+            <div style={{ fontSize: '0.82rem' }}>{lead.assignedToName || '—'}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 2 }}>Follow-up</div>
+            <div style={{ fontSize: '0.82rem', color: overdue ? 'var(--danger)' : 'var(--text-primary)', fontWeight: overdue ? 600 : 400 }}>
+              {overdue && '⚠ '}{formatDate(lead.nextFollowUpDate)}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+        <span style={{ fontSize: '0.7rem', fontWeight: 700, color, background: bg, padding: '2px 8px', borderRadius: 20 }}>
+          {label} · {lead.score}
+        </span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+                onClick={e => { e.stopPropagation(); onEdit(); }}
+                style={{ padding: '5px 12px', background: 'var(--bg-hover)', border: '1px solid var(--border)', borderRadius: 7, fontSize: '0.78rem', cursor: 'pointer', color: 'var(--text-secondary)' }}
+            >
+              Edit
+            </button>
+            <button
+                onClick={e => { e.stopPropagation(); onDelete(); }}
+                style={{ padding: '5px 12px', background: 'var(--danger-bg)', border: '1px solid var(--danger)', borderRadius: 7, fontSize: '0.78rem', cursor: 'pointer', color: 'var(--danger)' }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
   );
 }
 

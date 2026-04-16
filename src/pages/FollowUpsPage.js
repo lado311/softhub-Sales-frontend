@@ -24,7 +24,10 @@ export default function FollowUpsPage({ onSelectLead }) {
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Summary cards */}
-      <div style={styles.summaryRow}>
+      <div style={{
+        ...styles.summaryRow,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))'
+      }}>
         <SummaryCard icon={AlertTriangle} count={overdue.length} label="Overdue" color="var(--danger)" bg="var(--danger-bg)" />
         <SummaryCard icon={Clock} count={dueSoon.length} label="Due in 1–2 days" color="var(--warning)" bg="var(--warning-bg)" />
         <SummaryCard icon={Calendar} count={upcoming.length} label="Upcoming (14 days)" color="var(--accent)" bg="var(--accent-light)" />
@@ -71,7 +74,10 @@ function Section({ title, accent, leads, onSelectLead }) {
   return (
     <div style={styles.section}>
       <h3 style={styles.sectionTitle}>{title}</h3>
-      <div style={styles.grid}>
+      <div style={{
+        ...styles.grid,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))'
+      }}>
         {leads.map(lead => (
           <FollowUpCard key={lead.id} lead={lead} accent={accent} onClick={() => onSelectLead(lead)} />
         ))}

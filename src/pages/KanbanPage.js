@@ -70,7 +70,12 @@ export default function KanbanPage({ onSelectLead }) {
 
   return (
     <div className="fade-in">
-      <div style={styles.board}>
+      <div style={{
+        ...styles.board,
+        overflowX: 'auto',
+        paddingBottom: 8,
+        gridTemplateColumns: 'repeat(7, minmax(150px, 1fr))'
+      }}>
         {PIPELINE_STAGES.map(stage => (
           <KanbanColumn
             key={stage}

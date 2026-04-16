@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { key: 'settings', label: 'Settings', icon: Settings },
 ];
 
-export default function Sidebar({ currentPage, onNavigate, onOpenPalette }) {
+export default function Sidebar({ currentPage, onNavigate, onOpenPalette, isOpen, onClose }) {
   const { darkMode, toggleDarkMode, notifications } = useCRM();
   const { user, logout, isAdmin } = useAuth();
   const overdueCount = notifications.filter(n => n.type === 'overdue').length;
@@ -24,8 +24,23 @@ export default function Sidebar({ currentPage, onNavigate, onOpenPalette }) {
     ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
+  const handleNav = (key) => {
+    onNavigate(key);
+    if (onClose) onClose();
+  };
   return (
-    <aside style={styles.sidebar}>
+
+      <>
+        {isOpen && (
+            <div
+                className="sidebar-overlay sidebar-overlay-visible"
+                onClick={onClose}
+            />
+        )}
+        <aside
+            style={styles.sidebar}
+            className={isOpen ? 'sidebar-mobile-open' : 'sidebar-mobile-closed'}
+        >
       {/* Logo */}
       <div style={styles.logo}>
         <div style={styles.logoIcon}>SH</div>
@@ -53,7 +68,7 @@ export default function Sidebar({ currentPage, onNavigate, onOpenPalette }) {
           return (
             <button
               key={key}
-              onClick={() => onNavigate(key)}
+              onClick={() => handleNav(key)}
               style={{
                 ...styles.navItem,
                 background: active ? 'var(--accent-light)' : 'transparent',
@@ -115,6 +130,7 @@ export default function Sidebar({ currentPage, onNavigate, onOpenPalette }) {
         </div>
       </div>
     </aside>
+  </>
   );
 }
 
@@ -126,7 +142,8 @@ const styles = {
     borderRight: '1px solid var(--border)',
     display: 'flex', flexDirection: 'column',
     padding: '20px 12px', zIndex: 100,
-    transition: 'background var(--transition), border-color var(--transition)',
+    transition: 'background var(--transition), border-color var(--transition), transform 0.25s ease',
+    overflowY: 'auto'
   },
   logo: {
     display: 'flex', alignItems: 'center', gap: 10,
