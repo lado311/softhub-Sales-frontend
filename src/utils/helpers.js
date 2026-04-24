@@ -4,8 +4,35 @@ export const PIPELINE_STAGES = [
 ];
 
 export const INDUSTRIES = [
-  'Retail', 'Healthcare', 'Education', 'Finance', 'Technology',
-  'Manufacturing', 'Real Estate', 'Hospitality', 'Logistics', 'Other',
+  'Retail',
+  'Healthcare',
+  'Education',
+  'Finance',
+  'Technology',
+  'Manufacturing',
+  'Real Estate',
+  'Hospitality',
+  'Logistics',
+  'Automotive',
+  'Construction',
+  'Agriculture',
+  'Energy',
+  'Telecommunications',
+  'Media & Entertainment',
+  'Food & Beverage',
+  'Fashion & Apparel',
+  'Beauty & Cosmetics',
+  'Sports & Fitness',
+  'Travel & Tourism',
+  'Legal Services',
+  'Accounting & Audit',
+  'Marketing & Advertising',
+  'Insurance',
+  'Pharmaceuticals',
+  'E-commerce',
+  'Non-profit',
+  'Government',
+  'Other',
 ];
 
 export const SOURCES = [
