@@ -1,9 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 
 export default function Modal({ isOpen, onClose, title, children, width = 600 }) {
+  const [topOffset, setTopOffset] = useState(20);
+
   useEffect(() => {
     if (!isOpen) return;
+    const scrollY = window.scrollY;
+    const viewportH = window.innerHeight;
+    const modalH = Math.min(viewportH * 0.85, 600);
+    const calculated = scrollY + (viewportH / 2) - (modalH / 2);
+    setTopOffset(Math.max(20, calculated));
+
     const handler = (e) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -12,17 +20,17 @@ export default function Modal({ isOpen, onClose, title, children, width = 600 })
   if (!isOpen) return null;
 
   return (
-    <div style={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div style={{ ...styles.modal, maxWidth: width }} className="fade-in">
-        <div style={styles.header}>
-          <h2 style={styles.title}>{title}</h2>
-          <button style={styles.closeBtn} onClick={onClose}>
-            <X size={18} />
-          </button>
+      <div style={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+        <div style={{ ...styles.modal, maxWidth: width, marginTop: topOffset }} className="fade-in">
+          <div style={styles.header}>
+            <h2 style={styles.title}>{title}</h2>
+            <button style={styles.closeBtn} onClick={onClose}>
+              <X size={18} />
+            </button>
+          </div>
+          <div style={styles.body}>{children}</div>
         </div>
-        <div style={styles.body}>{children}</div>
       </div>
-    </div>
   );
 }
 
@@ -33,16 +41,17 @@ const styles = {
     background: 'rgba(10,12,20,0.5)',
     backdropFilter: 'blur(4px)',
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
     zIndex: 1000,
     padding: 20,
+    overflowY: 'auto',
   },
   modal: {
     background: 'var(--bg-card)',
     borderRadius: 'var(--radius-xl)',
     width: '100%',
-    maxHeight: '90vh',
+    maxHeight: '85vh',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',

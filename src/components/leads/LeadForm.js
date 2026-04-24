@@ -42,11 +42,18 @@ function Input({ value, onChange, placeholder, type = 'text' }) {
 function Select({ value, onChange, options }) {
   const [focused, setFocused] = useState(false);
   return (
-    <select
-      value={value} onChange={e => onChange(e.target.value)}
-      onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-      style={{ ...FIELD_STYLE, borderColor: focused ? 'var(--accent)' : 'var(--border)', cursor: 'pointer' }}
-    >
+      <select
+          value={value} onChange={e => onChange(e.target.value)}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          size={1}
+          style={{
+            ...FIELD_STYLE,
+            borderColor: focused ? 'var(--accent)' : 'var(--border)',
+            cursor: 'pointer',
+            maxHeight: '100px',
+            overflowY: 'auto',
+          }}
+      >
       {options.map(o => (
         <option key={typeof o === 'object' ? o.value : o} value={typeof o === 'object' ? o.value : o}>
           {typeof o === 'object' ? o.label : o}
